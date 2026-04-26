@@ -1,0 +1,119 @@
+{
+  "name": "Workflow Pengembangan 1",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "availableInChat": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6eb0a453-7aa8-4e81-8c53-84085bee245f",
+      "name": "When chat message received",
+      "webhookId": "664ff1fb-0765-4d80-b3e8-011bc1c086dc"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "\"Kamu adalah asisten akademik yang ahli dalam metode penelitian. Jawablah pertanyaan pengguna dengan sopan, jelas, dan berbasis data ilmiah.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "bf0107be-8349-4331-82ff-4e1eeda60b45",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        80,
+        272
+      ],
+      "id": "d325ea71-595b-48e3-99f1-791e57e655b7",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "j6SNkLYj4q3gJ8Gv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        256,
+        304
+      ],
+      "id": "2012f5aa-faa5-4be0-93c4-e4febef784ac",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timezone": "Asia/Jakarta"
+  },
+  "versionId": "aa1e0f9f-cb34-4fc8-852f-f49a66be1387",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "07389d0fb3807362c33a924bed5715c8e92090c43bc48c3ee5cb5f76a03dac87"
+  },
+  "id": "2Jc3wjbKzu4J0xgT",
+  "tags": []
+}
