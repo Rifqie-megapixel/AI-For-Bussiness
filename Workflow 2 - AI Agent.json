@@ -1,0 +1,187 @@
+{
+  "name": "Workflow 2 - AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Rifqie. How can I assist you today?",
+        "availableInChat": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e7d98784-c501-412f-acd7-ac3fab8d2965",
+      "name": "When chat message received",
+      "webhookId": "9f4911a6-916c-421b-8e46-7b50be848a4b"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "\"Kamu adalah asisten akademik yang membantu mahasiswa memahami aturan penulisan skripsi berdasarkan dokumen yang disediakan.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "3ee03150-31f0-4520-bee2-e305421eb901",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        208
+      ],
+      "id": "b05830ce-3fdc-4263-add7-42d0e24a8f2f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "j6SNkLYj4q3gJ8Gv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        352
+      ],
+      "id": "a2a1834e-c7a2-4d71-b805-e0b273d3c1e4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Gunakan tool ini untuk mencari informasi terkait panduan skripsi. IMPORTANT: Your input to this tool MUST be a valid JSON object with a single \"query\" key containing the search string. Example: {\"query\": \"format margin skripsi\"}",
+        "tableName": {
+          "__rl": true,
+          "value": "tugas_akhir_doc",
+          "mode": "list",
+          "cachedResultName": "tugas_akhir_doc"
+        },
+        "options": {
+          "queryName": "match_tugas_akhir_doc"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        496,
+        112
+      ],
+      "id": "0676a59d-67a9-431e-b9ec-1125272d5e8b",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "gEMVsCKbXDfZBXjO",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        496,
+        352
+      ],
+      "id": "661c4043-7dbb-4858-b9ce-305525c92ee8",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "j6SNkLYj4q3gJ8Gv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3315bf96-598a-4263-a517-1ace176b3417",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "07389d0fb3807362c33a924bed5715c8e92090c43bc48c3ee5cb5f76a03dac87"
+  },
+  "id": "jihXwhFmS2XzyJ98",
+  "tags": []
+}
