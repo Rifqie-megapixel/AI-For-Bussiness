@@ -1,0 +1,312 @@
+{
+  "name": "Workflow-Tugas 2 pertemuan 1",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "e91e1d1e-d818-49a4-a99a-832555625930",
+      "name": "Start Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "998877"
+            },
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "image_url",
+              "value": "https://i.imgur.com/K1n5E3u.jpeg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"prompt\": \"A beautiful sunset over mountains\", \"model\": \"kling-v1\", \"n\": 1 } }}",
+        "options": {}
+      },
+      "id": "e2404d73-d7a0-47c3-aeb5-80055d696ab1",
+      "name": "Create Image Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        464,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "id": "1ac0ceeb-adb2-4e04-84ae-a29560fb11aa",
+      "name": "Wait 10 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        336
+      ],
+      "webhookId": "5a50ffec-81ca-4e62-8b44-3481db08ab06"
+    },
+    {
+      "parameters": {
+        "url": "=https://httpbin.org/get",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "=taskId",
+              "value": "=998877"
+            },
+            {
+              "name": "=status",
+              "value": "success"
+            },
+            {
+              "name": "=image_url",
+              "value": "https://httpbin.org/image/jpeg"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "668f14ce-96d7-4056-9423-a4c9125d79fb",
+      "name": "Check Image Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1136,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.args.status }}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "id": "118736cd-5031-48a5-9aee-c2ac12bfebed"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "55fed6cd-a39d-4ca2-9b39-d0ff2d58796a",
+      "name": "Check If Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1360,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Check If Success').item.json.args.image_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "9ca71d7f-443a-4040-95cc-9e7c401283cc",
+      "name": "Download Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1808,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "5939620803",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "={{ \"AI Generated Image - Task: \" + $json.taskId }}"
+        }
+      },
+      "id": "a41593ca-29dd-44e0-83ea-0ffea761a998",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2032,
+        208
+      ],
+      "webhookId": "e4833661-1823-49f4-ac86-722e7c5fbb0a",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "id": "7256a2b8-9ca5-470b-983c-71ee2a0f667f",
+      "name": "Wait Before Retry",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1584,
+        424
+      ],
+      "webhookId": "1c521c64-7e4e-401d-81f8-ca6fd9db6f1d"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "7b6d2f19-8e86-4e2b-9271-e5dcdc4678b6",
+      "name": "Polling Loop",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        912,
+        336
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start Workflow": {
+      "main": [
+        [
+          {
+            "node": "Create Image Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Image Task": {
+      "main": [
+        [
+          {
+            "node": "Wait 10 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Polling Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Image Status": {
+      "main": [
+        [
+          {
+            "node": "Check If Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Success": {
+      "main": [
+        [
+          {
+            "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait Before Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Before Retry": {
+      "main": [
+        [
+          {
+            "node": "Polling Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Polling Loop": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check Image Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3963c3aa-768a-4437-8aaa-bd9891c9246e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d6e4e0d06ee89e4d44527323d0176fc9bcbd9eccb6b057cabfbb449106adaafa"
+  },
+  "id": "6qudjFKkhlFMpUeH",
+  "tags": []
+}
