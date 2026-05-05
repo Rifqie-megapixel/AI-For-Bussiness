@@ -1,0 +1,454 @@
+{
+  "name": "Workflow - Tugas 6 AI Pemasaran",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c3a6b8f1-3273-44c7-a566-55a96141d524",
+      "name": "Start Analysis",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1VKEVJoADWHykFjupP_GPrO5okHP9q_2vMvlI5UxQbe4/edit?gid=0#gid=0"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Data Posting",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VKEVJoADWHykFjupP_GPrO5okHP9q_2vMvlI5UxQbe4/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "id": "a4be9249-33b0-433a-810a-55f133517840",
+      "name": "Read Historical Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        400
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xmXFGMBhgMKptYPd",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all input items\nconst items = $input.all();\n\n// Calculate engagement score for each item\n// Formula: Shares * 3 + Comments * 2 + Likes * 1\nconst itemsWithScore = items.map(item => {\n  const likes = item.json.Likes || 0;\n  const comments = item.json.Comments || 0;\n  const shares = item.json.Shares || 0;\n  \n  const engagementScore = (shares * 3) + (comments * 2) + likes;\n  \n  return {\n    json: {\n      jam_tayang: item.json.jam_tayang,\n      Likes: likes,\n      Comments: comments,\n      Shares: shares,\n      engagement_score: engagementScore\n    }\n  };\n});\n\nreturn itemsWithScore;"
+      },
+      "id": "ba11b8b6-7fde-4395-aaf0-9c117e66f53c",
+      "name": "Calculate Engagement Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all input items\nconst items = $input.all();\n\n// Group by hour and calculate average engagement\nconst hourlyData = {};\n\nitems.forEach(item => {\n  const hour = item.json.jam_tayang;\n  \n  if (!hourlyData[hour]) {\n    hourlyData[hour] = {\n      total_engagement: 0,\n      count: 0\n    };\n  }\n  \n  hourlyData[hour].total_engagement += item.json.engagement_score;\n  hourlyData[hour].count += 1;\n});\n\n// Calculate averages and format output\nconst result = Object.keys(hourlyData).map(hour => {\n  const avg = hourlyData[hour].total_engagement / hourlyData[hour].count;\n  return {\n    json: {\n      jam_tayang: hour,\n      avg_engagement: Math.round(avg * 100) / 100,\n      post_count: hourlyData[hour].count\n    }\n  };\n});\n\nreturn result;"
+      },
+      "id": "adba016d-dfe8-4637-b301-6f4a0f5937c6",
+      "name": "Aggregate by Hour",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "avg_engagement",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "adb0ad69-3475-4e0c-a9be-01930d5f8604",
+      "name": "Sort by Engagement",
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "maxItems": 5
+      },
+      "id": "f51f31dc-4a3e-45be-aca4-33f059221947",
+      "name": "Get Top 5 Hours",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1VKEVJoADWHykFjupP_GPrO5okHP9q_2vMvlI5UxQbe4/edit?gid=0#gid=0"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 723653925,
+          "mode": "list",
+          "cachedResultName": "Hasil Analisis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VKEVJoADWHykFjupP_GPrO5okHP9q_2vMvlI5UxQbe4/edit#gid=723653925"
+        }
+      },
+      "id": "a42f03f1-f073-46b8-bb81-9ef361450465",
+      "name": "Clear Old Analysis",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1584,
+        400
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xmXFGMBhgMKptYPd",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/1VKEVJoADWHykFjupP_GPrO5okHP9q_2vMvlI5UxQbe4/edit?gid=0#gid=0"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 723653925,
+          "mode": "list",
+          "cachedResultName": "Hasil Analisis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VKEVJoADWHykFjupP_GPrO5okHP9q_2vMvlI5UxQbe4/edit#gid=723653925"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ranking",
+              "displayName": "ranking",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "jam",
+              "displayName": "jam",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "avgEngagement",
+              "displayName": "avgEngagement",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "jumlahPost",
+              "displayName": "jumlahPost",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "avgLikes",
+              "displayName": "avgLikes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "avgComments",
+              "displayName": "avgComments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "avgShares",
+              "displayName": "avgShares",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "platformTerbanyak",
+              "displayName": "platformTerbanyak",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "engagementScore",
+              "displayName": "engagementScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rekomendasi",
+              "displayName": "rekomendasi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tanggalAnalisis",
+              "displayName": "tanggalAnalisis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "totalDataDianalisis",
+              "displayName": "totalDataDianalisis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "829ee33e-a0a0-42f3-b01b-6b046efdb181",
+      "name": "Write Analysis Results",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1808,
+        400
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xmXFGMBhgMKptYPd",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "msg1",
+              "name": "message",
+              "value": "=🎯 <b>Laporan Harian - Waktu Posting Terbaik</b>\n\n📊 Berdasarkan analisis engagement historis, berikut adalah 5 jam terbaik untuk posting:\n\n{{ $input.all().map((item, index) => {\n  const medals = [\"🥇\", \"🥈\", \"🥉\", \"4️⃣\", \"5️⃣\"];\n  return medals[index] + \" <b>\" + item.json.jam_tayang + \"</b>\\n\" +\n         \"   📈 Avg Engagement: \" + item.json.avg_engagement + \"\\n\" +\n         \"   📝 Total Posts: \" + item.json.post_count + \"\\n\";\n}).join(\"\\n\") }}\n💡 <i>Gunakan waktu-waktu ini untuk memaksimalkan engagement!</i>\n\n📅 Dianalisis pada: {{ $now.toFormat(\"dd MMMM yyyy, HH:mm\") }} WIB",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": true
+        }
+      },
+      "id": "fa9a9945-68d7-4ae7-9d45-d62834f5250c",
+      "name": "Format Telegram Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2032,
+        400
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "chatId": "5939620803",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "4d8d196f-5c00-4f0d-bc10-2034d97307d1",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2256,
+        400
+      ],
+      "webhookId": "4f2c4680-3603-41d1-9a62-20fa0759c9ed",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start Analysis": {
+      "main": [
+        [
+          {
+            "node": "Read Historical Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Historical Data": {
+      "main": [
+        [
+          {
+            "node": "Calculate Engagement Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Engagement Score": {
+      "main": [
+        [
+          {
+            "node": "Aggregate by Hour",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate by Hour": {
+      "main": [
+        [
+          {
+            "node": "Sort by Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort by Engagement": {
+      "main": [
+        [
+          {
+            "node": "Get Top 5 Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Top 5 Hours": {
+      "main": [
+        [
+          {
+            "node": "Clear Old Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear Old Analysis": {
+      "main": [
+        [
+          {
+            "node": "Write Analysis Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Analysis Results": {
+      "main": [
+        [
+          {
+            "node": "Format Telegram Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Telegram Message": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "facf862c-81ad-4255-9517-ca46a4277538",
+  "meta": {
+    "instanceId": "d6e4e0d06ee89e4d44527323d0176fc9bcbd9eccb6b057cabfbb449106adaafa"
+  },
+  "id": "pcwHH3ypPtw45aqL",
+  "tags": []
+}
