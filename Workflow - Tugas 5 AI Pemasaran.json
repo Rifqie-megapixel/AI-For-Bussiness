@@ -1,0 +1,367 @@
+{
+  "name": "Workflow - Tugas 5 AI Pemasaran",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1074a9de-1058-4747-b0e8-e56d39c5de81",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"q\": \"<__PLACEHOLDER_VALUE__Your brand name__> news\", \"num\": 100 } }}",
+        "options": {}
+      },
+      "id": "057dd9eb-2385-4286-9a84-dcb1b857906b",
+      "name": "Search Brand 1 (Your Brand)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        464,
+        208
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "DfkFAxX21NfLZ82E",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "id": "753e392e-05f1-48c7-af89-f034e5f9b243",
+      "name": "Merge Search Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        688,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"q\": \"<__PLACEHOLDER_VALUE__Competitor 1 name__> news\", \"num\": 100 } }}",
+        "options": {}
+      },
+      "id": "714df3ad-606f-41a0-b2a6-a8a9a246cf88",
+      "name": "Search Competitor 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        464,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "DfkFAxX21NfLZ82E",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"q\": \"<__PLACEHOLDER_VALUE__Competitor 2 name__> news\", \"num\": 100 } }}",
+        "options": {}
+      },
+      "id": "5077d34c-201a-4359-a779-8aacd8e089be",
+      "name": "Search Competitor 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        464,
+        592
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "DfkFAxX21NfLZ82E",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst brand1Name = \"<__PLACEHOLDER_VALUE__Your brand name__>\";\nconst brand2Name = \"<__PLACEHOLDER_VALUE__Competitor 1 name__>\";\nconst brand3Name = \"<__PLACEHOLDER_VALUE__Competitor 2 name__>\";\n\nconst brand1Count = items[0].json.organic?.length || 0;\nconst brand2Count = items[1].json.organic?.length || 0;\nconst brand3Count = items[2].json.organic?.length || 0;\n\nconst totalMentions = brand1Count + brand2Count + brand3Count;\n\nconst brand1SoV = totalMentions > 0 ? (brand1Count / totalMentions * 100).toFixed(2) : 0;\nconst brand2SoV = totalMentions > 0 ? (brand2Count / totalMentions * 100).toFixed(2) : 0;\nconst brand3SoV = totalMentions > 0 ? (brand3Count / totalMentions * 100).toFixed(2) : 0;\n\nconst brand1Articles = items[0].json.organic || [];\nconst brand2Articles = items[1].json.organic || [];\nconst brand3Articles = items[2].json.organic || [];\n\nconst brand1Text = brand1Articles.map(a => a.title + ' ' + a.snippet).join(' ');\nconst brand2Text = brand2Articles.map(a => a.title + ' ' + a.snippet).join(' ');\nconst brand3Text = brand3Articles.map(a => a.title + ' ' + a.snippet).join(' ');\n\nreturn [{\n  json: {\n    brands: [\n      { name: brand1Name, mentions: brand1Count, sov: brand1SoV, articles: brand1Articles, text: brand1Text },\n      { name: brand2Name, mentions: brand2Count, sov: brand2SoV, articles: brand2Articles, text: brand2Text },\n      { name: brand3Name, mentions: brand3Count, sov: brand3SoV, articles: brand3Articles, text: brand3Text }\n    ],\n    totalMentions: totalMentions\n  }\n}];"
+      },
+      "id": "ece91df2-fa9a-4577-8346-1b3b6742c991",
+      "name": "Calculate Share of Voice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ \"Analyze the sentiment and reputation for these three brands based on their news coverage. For each brand, provide a reputation score from 1-10 (where 10 is excellent reputation) and a brief sentiment analysis.\\n\\nBrand 1: \" + $json.brands[0].name + \"\\nMentions: \" + $json.brands[0].mentions + \"\\nNews text: \" + $json.brands[0].text.substring(0, 3000) + \"\\n\\nBrand 2: \" + $json.brands[1].name + \"\\nMentions: \" + $json.brands[1].mentions + \"\\nNews text: \" + $json.brands[1].text.substring(0, 3000) + \"\\n\\nBrand 3: \" + $json.brands[2].name + \"\\nMentions: \" + $json.brands[2].mentions + \"\\nNews text: \" + $json.brands[2].text.substring(0, 3000) + \"\\n\\nProvide your response in this exact JSON format:\\n{\\n  \\\"brands\\\": [\\n    { \\\"name\\\": \\\"Brand1\\\", \\\"reputationScore\\\": 8, \\\"sentiment\\\": \\\"Positive - description\\\" },\\n    { \\\"name\\\": \\\"Brand2\\\", \\\"reputationScore\\\": 6, \\\"sentiment\\\": \\\"Mixed - description\\\" },\\n    { \\\"name\\\": \\\"Brand3\\\", \\\"reputationScore\\\": 7, \\\"sentiment\\\": \\\"Positive - description\\\" }\\n  ]\\n}\" }}",
+        "options": {
+          "systemMessage": "You are a brand reputation analyst. Analyze news sentiment and provide reputation scores from 1-10. Always respond with valid JSON only, no additional text."
+        }
+      },
+      "id": "3b8fda41-6f0f-44be-91f7-129324421d10",
+      "name": "Analyze Sentiment & Reputation",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1136,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.0-flash-001",
+        "options": {}
+      },
+      "id": "0db18136-aab4-4dbc-b6de-356105c7ceca",
+      "name": "OpenRouter Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        624
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "aL5KTh6Iyae6tCVH",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sovData = $('Calculate Share of Voice').item.json;\nconst aiAnalysis = $('Analyze Sentiment & Reputation').item.json.output;\n\nlet sentimentData;\ntry {\n  sentimentData = JSON.parse(aiAnalysis);\n} catch (e) {\n  const jsonMatch = aiAnalysis.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    sentimentData = JSON.parse(jsonMatch[0]);\n  } else {\n    sentimentData = { brands: [] };\n  }\n}\n\nconst brands = sovData.brands.map((brand, idx) => {\n  const sentiment = sentimentData.brands?.[idx] || { reputationScore: 0, sentiment: 'N/A' };\n  return {\n    ...brand,\n    reputationScore: sentiment.reputationScore,\n    sentiment: sentiment.sentiment\n  };\n});\n\nconst html = `<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }\n    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }\n    h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }\n    h2 { color: #34495e; margin-top: 30px; }\n    .executive-summary { background: #ecf0f1; padding: 20px; border-radius: 8px; margin: 20px 0; }\n    table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n    th { background: #3498db; color: white; padding: 12px; text-align: left; }\n    td { padding: 12px; border-bottom: 1px solid #ddd; }\n    tr:hover { background: #f8f9fa; }\n    .metric { display: inline-block; margin: 10px 20px 10px 0; }\n    .metric-label { font-size: 12px; color: #7f8c8d; text-transform: uppercase; }\n    .metric-value { font-size: 24px; font-weight: bold; color: #2c3e50; }\n    .score-high { color: #27ae60; }\n    .score-medium { color: #f39c12; }\n    .score-low { color: #e74c3c; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>Brand Monitoring & Share of Voice Report</h1>\n    <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>\n    \n    <div class=\"executive-summary\">\n      <h2>Executive Summary</h2>\n      <p>This report analyzes the online presence and reputation of your brand against two key competitors based on recent news coverage.</p>\n      <div class=\"metric\">\n        <div class=\"metric-label\">Total Mentions</div>\n        <div class=\"metric-value\">${sovData.totalMentions}</div>\n      </div>\n      <div class=\"metric\">\n        <div class=\"metric-label\">Brands Analyzed</div>\n        <div class=\"metric-value\">${brands.length}</div>\n      </div>\n    </div>\n\n    <h2>Share of Voice Comparison</h2>\n    <table>\n      <thead>\n        <tr>\n          <th>Brand</th>\n          <th>Mentions</th>\n          <th>Share of Voice (%)</th>\n          <th>Reputation Score</th>\n          <th>Sentiment Analysis</th>\n        </tr>\n      </thead>\n      <tbody>\n        ${brands.map(brand => {\n          const scoreClass = brand.reputationScore >= 7 ? 'score-high' : brand.reputationScore >= 5 ? 'score-medium' : 'score-low';\n          return `\n        <tr>\n          <td><strong>${brand.name}</strong></td>\n          <td>${brand.mentions}</td>\n          <td>${brand.sov}%</td>\n          <td class=\"${scoreClass}\"><strong>${brand.reputationScore}/10</strong></td>\n          <td>${brand.sentiment}</td>\n        </tr>\n          `;\n        }).join('')}\n      </tbody>\n    </table>\n\n    <h2>Key Insights</h2>\n    <ul>\n      <li><strong>Market Leader:</strong> ${brands.sort((a, b) => b.mentions - a.mentions)[0].name} has the highest share of voice with ${brands.sort((a, b) => b.mentions - a.mentions)[0].sov}% of total mentions.</li>\n      <li><strong>Best Reputation:</strong> ${brands.sort((a, b) => b.reputationScore - a.reputationScore)[0].name} leads in reputation with a score of ${brands.sort((a, b) => b.reputationScore - a.reputationScore)[0].reputationScore}/10.</li>\n      <li><strong>Total Coverage:</strong> ${sovData.totalMentions} news articles analyzed across all three brands.</li>\n    </ul>\n\n    <h2>Recommendations</h2>\n    <ul>\n      <li>Monitor sentiment trends weekly to identify reputation shifts early</li>\n      <li>Increase PR efforts if Share of Voice falls below 30%</li>\n      <li>Address negative sentiment proactively with targeted communications</li>\n      <li>Benchmark against competitors monthly to track relative performance</li>\n    </ul>\n  </div>\n</body>\n</html>`;\n\nreturn [{ json: { html: html } }];"
+      },
+      "id": "05e7716f-79b2-425a-8826-488cfdd286e2",
+      "name": "Create HTML Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdfshift.io/v3/convert/pdf",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"source\": $json.html, \"sandbox\": true } }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "3e74f6f7-a7b8-46e3-8d45-abfaaf140177",
+      "name": "Convert HTML to PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1712,
+        400
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "5WGlNCMccB0AWgYx",
+          "name": "Unnamed credential"
+        },
+        "httpHeaderAuth": {
+          "id": "zxS6CR7JJmTwHQD4",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "5939620803",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "={{ \"📊 Brand Share of Voice Report\\n\\nGenerated: \" + $now.toFormat(\"dd MMM yyyy HH:mm\") + \"\\n\\nTotal mentions analyzed: \" + $(\"Calculate Share of Voice\").item.json.totalMentions }}",
+          "fileName": "={{ \"Brand_SoV_Report_\" + $now.toFormat(\"yyyy-MM-dd\") + \".pdf\" }}"
+        }
+      },
+      "id": "4e24545a-d19f-4f22-bc1e-81fcb0360c33",
+      "name": "Send Report via Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1936,
+        400
+      ],
+      "webhookId": "5063b74d-de36-4514-96e2-fe00d04f5601",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Search Brand 1 (Your Brand)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Competitor 1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Competitor 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Brand 1 (Your Brand)": {
+      "main": [
+        [
+          {
+            "node": "Merge Search Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Search Results": {
+      "main": [
+        [
+          {
+            "node": "Calculate Share of Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Competitor 1": {
+      "main": [
+        [
+          {
+            "node": "Merge Search Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Search Competitor 2": {
+      "main": [
+        [
+          {
+            "node": "Merge Search Results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Calculate Share of Voice": {
+      "main": [
+        [
+          {
+            "node": "Analyze Sentiment & Reputation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Sentiment & Reputation": {
+      "main": [
+        [
+          {
+            "node": "Create HTML Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyze Sentiment & Reputation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HTML Report": {
+      "main": [
+        [
+          {
+            "node": "Convert HTML to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert HTML to PDF": {
+      "main": [
+        [
+          {
+            "node": "Send Report via Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2bc45592-1592-48ec-a5d4-07cf97a598a5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d6e4e0d06ee89e4d44527323d0176fc9bcbd9eccb6b057cabfbb449106adaafa"
+  },
+  "id": "nmEZbTb9Uxt6AyxA",
+  "tags": []
+}
