@@ -1,0 +1,257 @@
+{
+  "name": "Tugas-7 Implementasi Ai untuk Keuangan",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -816,
+        160
+      ],
+      "id": "0a04475b-e71a-441a-b7c6-c901a071e7c5",
+      "name": "Setiap Hari Minggu"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1eVWhQXaY-gNV9Hd2XA3YDetvoS5LKebazisOrh0Wbpw",
+          "mode": "list",
+          "cachedResultName": "Dummy Catatan Keuangan n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1eVWhQXaY-gNV9Hd2XA3YDetvoS5LKebazisOrh0Wbpw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1eVWhQXaY-gNV9Hd2XA3YDetvoS5LKebazisOrh0Wbpw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -608,
+        160
+      ],
+      "id": "1024dfe5-d408-42d6-8f33-a311d1df5e8c",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xmXFGMBhgMKptYPd",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst today = new Date();\ntoday.setHours(23, 59, 59, 999); // inklusif hari ini sampai akhir hari\n\nconst sevenDaysAgo = new Date();\nsevenDaysAgo.setDate(today.getDate() - 7);\nsevenDaysAgo.setHours(0, 0, 0, 0);\n\nlet weeklyExpenses = [];\nlet formattedString = \"Data pengeluaran saya minggu ini:\\n\";\nlet hasExpenses = false;\n\nfor (const item of items) {\n  const rawTanggal = item.json.Tanggal; // format: \"13/04/2026\"\n  \n  // Parse manual DD/MM/YYYY → YYYY-MM-DD agar valid di semua engine\n  const [day, month, year] = rawTanggal.split(\"/\");\n  const expenseDate = new Date(`${year}-${month}-${day}`);\n\n  if (expenseDate >= sevenDaysAgo && expenseDate <= today) {\n    weeklyExpenses.push(item.json);\n    formattedString += `- ${item.json.Deskripsi}: Rp${item.json[\"Jumlah (IDR)\"]}\\n`;\n    hasExpenses = true;\n  }\n}\n\nreturn [{\n  json: {\n    promptData: formattedString,\n    hasExpenses: hasExpenses\n  }\n}];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        160
+      ],
+      "id": "b534d310-5b4f-415a-ab37-eb75419d1d52",
+      "name": "Filter 7 Hari & Format Teks"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7912b06d-287b-43fd-bb2b-30f8655915a2",
+              "leftValue": "={{ $node[\"Filter 7 Hari & Format Teks\"].json.hasExpenses }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        160
+      ],
+      "id": "dd8864a7-f123-4d6d-afd3-06d893903889",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"model\": \"openrouter/free\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $node[\\\"Filter 7 Hari & Format Teks\\\"].json.promptData }}\\n\\nInstruksi: Tulis ringkasan kebiasaan belanja saya minggu ini dan beri 1 saran penghematan.\"\n    }\n  ],\n  \"temperature\": 0.7\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d45971aa-e754-4996-b702-76df302901ea",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "chatId": "5939620803",
+        "text": "={{ $json.choices[0].message.content }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "25797a96-34ee-4638-82f4-89d50a3bc2ae",
+      "name": "Pesan True",
+      "webhookId": "571d017b-73d7-4d87-ae58-4017b12cd092",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5939620803",
+        "text": "hari terakhir. Tidak ada analisis AI yang dibuat.”",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        16,
+        256
+      ],
+      "id": "b8f3d8af-38e4-496e-bc81-80444253332f",
+      "name": "Pesan False",
+      "webhookId": "c16714ec-23bc-4777-b8d4-c9d1af0ca09e",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Setiap Hari Minggu": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Filter 7 Hari & Format Teks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter 7 Hari & Format Teks": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pesan False",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Pesan True",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a2963a56-2db7-416a-a2c3-0d477a698f11",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d6e4e0d06ee89e4d44527323d0176fc9bcbd9eccb6b057cabfbb449106adaafa"
+  },
+  "id": "8sTmlz8vBnOERxU1",
+  "tags": []
+}
