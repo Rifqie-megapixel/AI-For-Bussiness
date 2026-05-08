@@ -1,0 +1,824 @@
+{
+  "name": "Workflow - Tugas 5 AI SDM",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -704,
+        96
+      ],
+      "id": "2a1f010a-94ec-4105-b386-79e930bdecc5",
+      "name": "Telegram Trigger",
+      "webhookId": "d8b509fc-8702-49f2-9b20-64f6c93f3e70",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "6adf7d4f-a02e-4fb1-9d83-d2173e20850b"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cf403175-7e31-420c-899a-4fcc5f699c9b",
+                    "leftValue": "{{ $json.callback_query }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        96
+      ],
+      "id": "c4dec171-3cd5-4693-9cf2-1a78c6cdcd5c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "287ea69e-4017-41f1-822a-e52f430fe896",
+              "name": "reimbursement",
+              "value": "Karyawan harus mengisi formulir, melampirkan bukti bayar asli, dan menyerahkannya ke manajer. Pembayaran akan diproses dalam 14 hari kerja.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        384
+      ],
+      "id": "47d97a9d-69d5-4df9-a69e-71a6cf078226",
+      "name": "Reimbursement"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "Selamat datang di Asisten SOP Systia! Anda bisa bertanya menggunakan menu dibawah ini.",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Prosedur Reimbursement 💰",
+                    "additionalFields": {
+                      "callback_data": "reimbursement"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Prosedur Cuti 🌴",
+                    "additionalFields": {
+                      "callback_data": "cuti"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Aturan Lembur ⏰",
+                    "additionalFields": {
+                      "callback_data": "lembur"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Klaim Asuransi Kesehatan 🏥",
+                    "additionalFields": {
+                      "callback_data": "asuransi"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Permintaan Alat Kerja Baru 💻",
+                    "additionalFields": {
+                      "callback_data": "alat_kerja"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fb411c65-3cb7-4c92-be7d-6cee3f7fae15",
+      "name": "True Output",
+      "webhookId": "9304f0de-998a-4028-b5e8-909121358483",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "Untuk memulai percakapan, harap ketik /start",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        192
+      ],
+      "id": "8d304335-32a8-4da6-8ef9-8ff4174087c2",
+      "name": "False Output",
+      "webhookId": "9304f0de-998a-4028-b5e8-909121358483",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.from.id }}",
+        "text": "={{ $json.reimbursement }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        368
+      ],
+      "id": "302ad0fc-44ad-4ef6-bbeb-22a3e5cdb275",
+      "name": "Kirim hasil ke user (Reimbursement)",
+      "webhookId": "9304f0de-998a-4028-b5e8-909121358483",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dec491dc-599e-414d-981f-95a319c6d167",
+              "name": "cuti",
+              "value": "Karyawan harus mengajukan cuti melalui portal HRD",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        640
+      ],
+      "id": "d870c0df-eda7-44e1-ad07-c02cbc0d601b",
+      "name": "Cuti"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "60ce8105-5ead-4b13-b167-943c0cf58047",
+              "leftValue": "={{ $('Switch').item.json.callback_query.data }}",
+              "rightValue": "reimbursement",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -288,
+        384
+      ],
+      "id": "8ab78704-30a7-4e93-93c7-1cff3a30b1ed",
+      "name": "True Reimbursement"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "60ce8105-5ead-4b13-b167-943c0cf58047",
+              "leftValue": "={{ $('Switch').item.json.callback_query.data }}",
+              "rightValue": "cuti",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -288,
+        640
+      ],
+      "id": "0b30bf8e-8624-4e2e-b3e7-bb38ea0f2480",
+      "name": "True Cuti"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.from.id }}",
+        "text": "={{ $json.cuti }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        624
+      ],
+      "id": "4b1a0ead-684d-4a3c-b877-8a0b56f9fc23",
+      "name": "Kirim hasil ke user (cuti)",
+      "webhookId": "9304f0de-998a-4028-b5e8-909121358483",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "06f8e74b-0bd7-40e9-b29d-1b2d65e895a9",
+              "name": "lembur",
+              "value": "Lembur harus mendapatkan persetujuan atasan terlebih dahulu",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        880
+      ],
+      "id": "8cf366b0-1487-4749-8165-9b67941d7414",
+      "name": "Lembur"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "60ce8105-5ead-4b13-b167-943c0cf58047",
+              "leftValue": "={{ $('Switch').item.json.callback_query.data }}",
+              "rightValue": "lembur",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -288,
+        880
+      ],
+      "id": "85daa7b4-3a69-443c-bc97-611bea50b896",
+      "name": "True Lembur"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.from.id }}",
+        "text": "={{ $json.lembur }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        16,
+        864
+      ],
+      "id": "bcc107b3-5b4d-45a5-b594-d1a90c7ef919",
+      "name": "Kirim hasil ke user (lembur)",
+      "webhookId": "9304f0de-998a-4028-b5e8-909121358483",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f766847e-f606-4fe3-a772-69d7048904bd",
+              "name": "asuransi",
+              "value": "Karyawan wajib membawa kartu asuransi, mengisi formulir",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        1136
+      ],
+      "id": "fbd46112-1c39-40a4-b1e8-71eac53ffb34",
+      "name": "Asuransi"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "60ce8105-5ead-4b13-b167-943c0cf58047",
+              "leftValue": "={{ $('Switch').item.json.callback_query.data }}",
+              "rightValue": "asuransi",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -352,
+        1136
+      ],
+      "id": "ae9baa8e-05a9-41c9-af32-b9c3b4aa9da2",
+      "name": "True Asuransi"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.from.id }}",
+        "text": "={{ $json.asuransi }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        16,
+        1120
+      ],
+      "id": "7d7c1fae-a10e-492b-9ae1-b7d775220142",
+      "name": "Kirim hasil ke user (Asuransi)",
+      "webhookId": "9304f0de-998a-4028-b5e8-909121358483",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0ace5f50-28e5-451d-b37d-26edd1539807",
+              "name": "alat_kerja",
+              "value": "Karyawan mengajukan permintaan melalui sistem inventarisir",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        1360
+      ],
+      "id": "fa8b5ef1-271e-4137-a163-fe1dd228837c",
+      "name": "Alat Kerja"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "60ce8105-5ead-4b13-b167-943c0cf58047",
+              "leftValue": "={{ $('Switch').item.json.callback_query.data }}",
+              "rightValue": "alat_kerja",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -352,
+        1360
+      ],
+      "id": "dd60d395-c5c9-4067-9598-b8cd956bed87",
+      "name": "True Alat Kerja"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.from.id }}",
+        "text": "={{ $json.alat_kerja }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        16,
+        1344
+      ],
+      "id": "6a0120a3-a36f-43b3-8bda-a1ae84143761",
+      "name": "Kirim hasil ke user (Alat Kerja)",
+      "webhookId": "9304f0de-998a-4028-b5e8-909121358483",
+      "credentials": {
+        "telegramApi": {
+          "id": "0VUbhQHOdeonlE95",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "76d63dd5-a710-4673-a726-4c428fb4bda8",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -320,
+        80
+      ],
+      "id": "d9936991-25a6-4c38-9833-6e6ee66f15fb",
+      "name": "Periksa Pesan"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Periksa Pesan",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reimbursement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reimbursement": {
+      "main": [
+        [
+          {
+            "node": "True Reimbursement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "True Reimbursement": {
+      "main": [
+        [
+          {
+            "node": "Kirim hasil ke user (Reimbursement)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cuti",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cuti": {
+      "main": [
+        [
+          {
+            "node": "True Cuti",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "True Cuti": {
+      "main": [
+        [
+          {
+            "node": "Kirim hasil ke user (cuti)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Lembur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lembur": {
+      "main": [
+        [
+          {
+            "node": "True Lembur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "True Lembur": {
+      "main": [
+        [
+          {
+            "node": "Kirim hasil ke user (lembur)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Asuransi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Asuransi": {
+      "main": [
+        [
+          {
+            "node": "True Asuransi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "True Asuransi": {
+      "main": [
+        [
+          {
+            "node": "Kirim hasil ke user (Asuransi)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alat Kerja",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alat Kerja": {
+      "main": [
+        [
+          {
+            "node": "True Alat Kerja",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "True Alat Kerja": {
+      "main": [
+        [
+          {
+            "node": "Kirim hasil ke user (Alat Kerja)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Periksa Pesan": {
+      "main": [
+        [
+          {
+            "node": "True Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "False Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "83935a81-2220-45c9-8823-e62a08f5cc85",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d6e4e0d06ee89e4d44527323d0176fc9bcbd9eccb6b057cabfbb449106adaafa"
+  },
+  "id": "eNbXoFw6hWQioCvI",
+  "tags": []
+}
